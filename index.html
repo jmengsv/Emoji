@@ -20,7 +20,13 @@
     .emoji:hover {
       transform: scale(1.2);
     }
-    /* Bounce animation */
+    #message {
+      margin-top: 30px;
+      font-size: 24px;
+      color: green;
+    }
+
+    /* Bounce (happy) */
     @keyframes bounce {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-20px); }
@@ -28,10 +34,24 @@
     .bounce {
       animation: bounce 0.4s;
     }
-    #message {
-      margin-top: 30px;
-      font-size: 24px;
-      color: green;
+
+    /* Pulse (neutral) */
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.1); opacity: 0.7; }
+    }
+    .pulse {
+      animation: pulse 1s ease-in-out 2;
+    }
+
+    /* Shake (sad) */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    .shake {
+      animation: shake 0.4s;
     }
   </style>
 </head>
@@ -59,34 +79,36 @@
       });
     }
 
-    // Attach event listeners to emoji spans
     document.querySelectorAll('.emoji').forEach(emojiEl => {
       emojiEl.addEventListener('click', function(event) {
         const selectedEmoji = event.target.textContent;
-        
-        // Send vote
+
         sendVote(selectedEmoji);
 
-        // Bounce animation
-        event.target.classList.add('bounce');
+        event.target.classList.remove('bounce', 'pulse', 'shake');
+
+        if (selectedEmoji === '😀') {
+          event.target.classList.add('bounce');
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        } else if (selectedEmoji === '😐') {
+          event.target.classList.add('pulse');
+        } else if (selectedEmoji === '😞') {
+          event.target.classList.add('shake');
+        }
+
         setTimeout(() => {
-          event.target.classList.remove('bounce');
-        }, 400);
+          event.target.classList.remove('bounce', 'pulse', 'shake');
+        }, 1000);
 
-        // Confetti
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-
-        // Hide emojis and show thank you after a short delay
         setTimeout(() => {
           document.getElementById('emoji-container').style.display = 'none';
           document.getElementById('message').textContent = "Thanks for your feedback!";
         }, 500);
 
-        // Refresh after 3 seconds
         setTimeout(() => {
           window.location.reload();
         }, 3000);
