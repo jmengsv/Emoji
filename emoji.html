@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Emoji Feedback</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #f0f0f0;
+    }
+    .emoji {
+      font-size: 80px;
+      margin: 20px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .emoji:hover {
+      transform: scale(1.2);
+    }
+    #message {
+      margin-top: 30px;
+      font-size: 24px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>How was your visit?</h1>
+  <div>
+    <span class="emoji" onclick="sendVote('😀')">😀</span>
+    <span class="emoji" onclick="sendVote('😐')">😐</span>
+    <span class="emoji" onclick="sendVote('😞')">😞</span>
+  </div>
+  <div id="message"></div>
+
+  <script>
+    function sendVote(emoji) {
+      fetch('https://script.google.com/macros/s/AKfycbzSC2d63wVyfvMS4IxZz3GsKrbBfx5Y3C_Yl7LP1kWXLxB1BXFBZT25Knpgh2jt6dhJ/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'emoji=' + encodeURIComponent(emoji)
+      });
+
+      document.getElementById('message').textContent = "Thanks for your feedback!";
+    }
+  </script>
+</body>
+</html>
