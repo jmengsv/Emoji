@@ -15,9 +15,18 @@
       margin: 20px;
       cursor: pointer;
       transition: transform 0.2s;
+      display: inline-block;
     }
     .emoji:hover {
       transform: scale(1.2);
+    }
+    /* Bounce animation */
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+    }
+    .bounce {
+      animation: bounce 0.4s;
     }
     #message {
       margin-top: 30px;
@@ -28,73 +37,61 @@
 </head>
 <body>
   <h1>How was your experience?</h1>
-  <div>
-    <span class="emoji" onclick="sendVote('😀')">😀</span>
-    <span class="emoji" onclick="sendVote('😐')">😐</span>
-    <span class="emoji" onclick="sendVote('😞')">😞</span>
+  <div id="emoji-container">
+    <span class="emoji">😀</span>
+    <span class="emoji">😐</span>
+    <span class="emoji">😞</span>
   </div>
   <div id="message"></div>
 
+  <!-- Confetti library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
   <script>
-  function sendVote(emoji) {
-    // Send vote to your Google Sheet
-    fetch('https://script.google.com/macros/s/AKfycbzSC2d63wVyfvMS4IxZz3GsKrbBfx5Y3C_Yl7LP1kWXLxB1BXFBZT25Knpgh2jt6dhJ/exec', {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'emoji=' + encodeURIComponent(emoji)
-    });
-
-    // Get the clicked emoji element (the one that triggered the event)
-    // We need the event object, so let's add that as a parameter
-  }
-
-  // We need to attach event listeners to emojis so we can get the clicked element and trigger bounce + confetti
-  document.querySelectorAll('.emoji').forEach(emojiEl => {
-    emojiEl.addEventListener('click', function(event) {
-      // Send vote with emoji text
-      sendVote(event.target.textContent);
-
-      // Bounce animation
-      event.target.classList.add('bounce');
-      setTimeout(() => {
-        event.target.classList.remove('bounce');
-      }, 400);
-
-      // Confetti
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
+    function sendVote(emoji) {
+      fetch('https://script.google.com/macros/s/AKfycbzSC2d63wVyfvMS4IxZz3GsKrbBfx5Y3C_Yl7LP1kWXLxB1BXFBZT25Knpgh2jt6dhJ/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'emoji=' + encodeURIComponent(emoji)
       });
+    }
 
-      // Hide emojis and show thank you after a delay so the animation plays
-      setTimeout(() => {
-        document.querySelector('div').style.display = 'none';
-        document.getElementById('message').textContent = "Thanks for your feedback!";
-      }, 500);
+    // Attach event listeners to emoji spans
+    document.querySelectorAll('.emoji').forEach(emojiEl => {
+      emojiEl.addEventListener('click', function(event) {
+        const selectedEmoji = event.target.textContent;
+        
+        // Send vote
+        sendVote(selectedEmoji);
 
-      // Refresh page after 3 seconds
-      setTimeout(() => {
-        window.location.reload();
-      }, 3000);
+        // Bounce animation
+        event.target.classList.add('bounce');
+        setTimeout(() => {
+          event.target.classList.remove('bounce');
+        }, 400);
+
+        // Confetti
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+
+        // Hide emojis and show thank you after a short delay
+        setTimeout(() => {
+          document.getElementById('emoji-container').style.display = 'none';
+          document.getElementById('message').textContent = "Thanks for your feedback!";
+        }, 500);
+
+        // Refresh after 3 seconds
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      });
     });
-  });
-</script>
-
-
-
-
-
-
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
