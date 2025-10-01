@@ -46,15 +46,6 @@
       animation: bounce 0.4s;
     }
 
-    /* Sway (neutral) */
-    @keyframes sway {
-      0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(10deg); }
-    }
-    .sway {
-      animation: sway 2s ease-in-out infinite;
-    }
-
     /* Shake (sad) */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
@@ -92,6 +83,18 @@
       to {
         transform: translateY(100vh);
       }
+    }
+
+    /* Explode pieces */
+    .piece {
+      position: absolute;
+      font-size: 24px;
+      pointer-events: none;
+      user-select: none;
+      will-change: transform, opacity;
+      opacity: 1;
+      transition: opacity 0.8s ease-out;
+      z-index: 1000;
     }
   </style>
 </head>
@@ -139,6 +142,45 @@
       document.getElementById('rain').innerHTML = '';
     }
 
+    function explodeEmoji(emojiEl) {
+      const rect = emojiEl.getBoundingClientRect();
+      const piecesCount = 12;
+      const pieces = [];
+
+      // Hide the original emoji
+      emojiEl.style.visibility = 'hidden';
+
+      for (let i = 0; i < piecesCount; i++) {
+        const piece = document.createElement('span');
+        piece.classList.add('piece');
+        piece.textContent = emojiEl.textContent;
+
+        // Start position roughly where emoji is
+        piece.style.left = rect.left + rect.width / 2 + 'px';
+        piece.style.top = rect.top + rect.height / 2 + 'px';
+
+        // Add to body so it's positioned absolutely on the page
+        document.body.appendChild(piece);
+        pieces.push(piece);
+
+        // Random angle and distance
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = 80 + Math.random() * 100;
+
+        // Animate pieces flying out
+        requestAnimationFrame(() => {
+          piece.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
+          piece.style.opacity = '0';
+        });
+      }
+
+      // Remove pieces after animation ends
+      setTimeout(() => {
+        pieces.forEach(p => p.remove());
+        emojiEl.style.visibility = 'visible';
+      }, 800);
+    }
+
     document.querySelectorAll('.emoji').forEach(emojiEl => {
       emojiEl.addEventListener('click', function(event) {
         const selectedEmoji = event.target.textContent;
@@ -156,7 +198,7 @@
           });
           clearRain();
         } else if (selectedEmoji === '😐') {
-          event.target.classList.add('sway');
+          explodeEmoji(event.target);
           clearRain();
         } else if (selectedEmoji === '😞') {
           event.target.classList.add('shake');
