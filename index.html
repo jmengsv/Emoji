@@ -37,7 +37,7 @@
 
   <script>
   function sendVote(emoji) {
-    // Send the emoji vote to Google Apps Script
+    // Send emoji to Google Sheet
     fetch('https://script.google.com/macros/s/AKfycbzSC2d63wVyfvMS4IxZz3GsKrbBfx5Y3C_Yl7LP1kWXLxB1BXFBZT25Knpgh2jt6dhJ/exec', {
       method: 'POST',
       mode: 'no-cors',
@@ -47,16 +47,15 @@
       body: 'emoji=' + encodeURIComponent(emoji)
     });
 
+    // Hide all emojis
+    document.querySelectorAll('.emoji').forEach(el => {
+      el.style.display = 'none';
+    });
+
     // Show thank you message
     document.getElementById('message').textContent = "Thanks for your feedback!";
 
-    // Disable emoji buttons to prevent double taps
-    document.querySelectorAll('.emoji').forEach(el => {
-      el.style.pointerEvents = 'none';
-      el.style.opacity = 0.5;
-    });
-
-    // Auto-refresh after 3 seconds
+    // Refresh the page after 3 seconds
     setTimeout(() => {
       window.location.reload();
     }, 3000);
@@ -64,7 +63,9 @@
 </script>
 
 
+
 </body>
 </html>
+
 
 
