@@ -56,6 +56,17 @@
       animation: shake 0.4s;
     }
 
+    /* Shake (bomb pre-explode) */
+    @keyframes bomb-shake {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(-10deg); }
+      50% { transform: rotate(10deg); }
+      75% { transform: rotate(-10deg); }
+    }
+    .bomb-shake {
+      animation: bomb-shake 0.5s;
+    }
+
     /* Rain background container */
     #rain {
       pointer-events: none;
@@ -96,6 +107,17 @@
       transition: opacity 0.8s ease-out;
       z-index: 1000;
     }
+
+    /* White flash for bomb explosion */
+    #flash {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1500;
+      transition: opacity 0.2s ease-out;
+    }
   </style>
 </head>
 <body>
@@ -107,6 +129,7 @@
   </div>
   <div id="message"></div>
   <div id="rain"></div>
+  <div id="flash"></div>
 
   <!-- Confetti library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -125,8 +148,8 @@
 
     function createRain() {
       const rain = document.getElementById('rain');
-      rain.innerHTML = ''; // clear existing drops
-      const dropsCount = 50; // number of raindrops
+      rain.innerHTML = '';
+      const dropsCount = 50;
 
       for(let i = 0; i < dropsCount; i++) {
         const drop = document.createElement('div');
@@ -142,52 +165,65 @@
       document.getElementById('rain').innerHTML = '';
     }
 
-    function explodeEmoji(emojiEl) {
-      const rect = emojiEl.getBoundingClientRect();
-      const piecesCount = 12;
-      const pieces = [];
-
-      // Hide the original emoji
-      emojiEl.style.visibility = 'hidden';
-
-      for (let i = 0; i < piecesCount; i++) {
-        const piece = document.createElement('span');
-        piece.classList.add('piece');
-        piece.textContent = emojiEl.textContent;
-
-        // Start position roughly where emoji is
-        piece.style.left = rect.left + rect.width / 2 + 'px';
-        piece.style.top = rect.top + rect.height / 2 + 'px';
-
-        // Add to body so it's positioned absolutely on the page
-        document.body.appendChild(piece);
-        pieces.push(piece);
-
-        // Random angle and distance
-        const angle = Math.random() * 2 * Math.PI;
-        const distance = 80 + Math.random() * 100;
-
-        // Animate pieces flying out
-        requestAnimationFrame(() => {
-          piece.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
-          piece.style.opacity = '0';
-        });
-      }
-
-      // Remove pieces after animation ends
+    function flashWhite() {
+      const flash = document.getElementById('flash');
+      flash.style.opacity = '1';
       setTimeout(() => {
-        pieces.forEach(p => p.remove());
-        emojiEl.style.visibility = 'visible';
-      }, 800);
+        flash.style.opacity = '0';
+      }, 200);
+    }
+
+    function bombExplode(emojiEl) {
+      return new Promise(resolve => {
+        const rect = emojiEl.getBoundingClientRect();
+        const piecesCount = 20;
+        const pieces = [];
+
+        // Hide the original emoji after shake
+        emojiEl.style.visibility = 'hidden';
+
+        // Create explosion pieces
+        for (let i = 0; i < piecesCount; i++) {
+          const piece = document.createElement('span');
+          piece.classList.add('piece');
+          piece.textContent = emojiEl.textContent;
+
+          piece.style.left = rect.left + rect.width / 2 + 'px';
+          piece.style.top = rect.top + rect.height / 2 + 'px';
+
+          document.body.appendChild(piece);
+          pieces.push(piece);
+
+          // Random angle and distance (bigger explosion)
+          const angle = Math.random() * 2 * Math.PI;
+          const distance = 150 + Math.random() * 150;
+
+          requestAnimationFrame(() => {
+            piece.style.transform = `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px)`;
+            piece.style.opacity = '0';
+          });
+        }
+
+        // Flash white after pieces start flying
+        setTimeout(() => {
+          flashWhite();
+        }, 150);
+
+        // Remove pieces after animation
+        setTimeout(() => {
+          pieces.forEach(p => p.remove());
+          resolve();
+        }, 800);
+      });
     }
 
     document.querySelectorAll('.emoji').forEach(emojiEl => {
-      emojiEl.addEventListener('click', function(event) {
+      emojiEl.addEventListener('click', async function(event) {
         const selectedEmoji = event.target.textContent;
 
         sendVote(selectedEmoji);
 
-        event.target.classList.remove('bounce', 'sway', 'shake');
+        event.target.classList.remove('bounce', 'shake', 'bomb-shake');
 
         if (selectedEmoji === '😀') {
           event.target.classList.add('bounce');
@@ -198,7 +234,14 @@
           });
           clearRain();
         } else if (selectedEmoji === '😐') {
-          explodeEmoji(event.target);
+          // Bomb shake before explode
+          event.target.classList.add('bomb-shake');
+
+          // Wait for shake animation to finish (~500ms)
+          await new Promise(r => setTimeout(r, 500));
+
+          // Explode bomb
+          await bombExplode(event.target);
           clearRain();
         } else if (selectedEmoji === '😞') {
           event.target.classList.add('shake');
@@ -206,7 +249,7 @@
         }
 
         setTimeout(() => {
-          event.target.classList.remove('bounce', 'sway', 'shake');
+          event.target.classList.remove('bounce', 'shake', 'bomb-shake');
         }, 1000);
 
         setTimeout(() => {
