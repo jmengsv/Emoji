@@ -37,7 +37,7 @@
 
   <script>
   function sendVote(emoji) {
-    // Send emoji to Google Sheet
+    // Send vote to your Google Sheet
     fetch('https://script.google.com/macros/s/AKfycbzSC2d63wVyfvMS4IxZz3GsKrbBfx5Y3C_Yl7LP1kWXLxB1BXFBZT25Knpgh2jt6dhJ/exec', {
       method: 'POST',
       mode: 'no-cors',
@@ -47,19 +47,43 @@
       body: 'emoji=' + encodeURIComponent(emoji)
     });
 
-    // Get the emoji container and hide it completely
-    const emojiContainer = document.querySelector('div');
-    emojiContainer.style.display = 'none';
-
-    // Show thank you message
-    document.getElementById('message').textContent = "Thanks for your feedback!";
-
-    // Refresh the page after 3 seconds
-    setTimeout(() => {
-      window.location.reload();
-    }, 3000);
+    // Get the clicked emoji element (the one that triggered the event)
+    // We need the event object, so let's add that as a parameter
   }
+
+  // We need to attach event listeners to emojis so we can get the clicked element and trigger bounce + confetti
+  document.querySelectorAll('.emoji').forEach(emojiEl => {
+    emojiEl.addEventListener('click', function(event) {
+      // Send vote with emoji text
+      sendVote(event.target.textContent);
+
+      // Bounce animation
+      event.target.classList.add('bounce');
+      setTimeout(() => {
+        event.target.classList.remove('bounce');
+      }, 400);
+
+      // Confetti
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
+      // Hide emojis and show thank you after a delay so the animation plays
+      setTimeout(() => {
+        document.querySelector('div').style.display = 'none';
+        document.getElementById('message').textContent = "Thanks for your feedback!";
+      }, 500);
+
+      // Refresh page after 3 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000);
+    });
+  });
 </script>
+
 
 
 
@@ -67,6 +91,7 @@
 
 </body>
 </html>
+
 
 
 
