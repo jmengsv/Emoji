@@ -9,6 +9,9 @@
       text-align: center;
       padding: 50px;
       background: #f0f0f0;
+      position: relative;
+      overflow: hidden;
+      height: 100vh;
     }
     .emoji {
       font-size: 80px;
@@ -16,6 +19,8 @@
       cursor: pointer;
       transition: transform 0.2s;
       display: inline-block;
+      position: relative;
+      z-index: 2;
     }
     .emoji:hover {
       transform: scale(1.2);
@@ -24,6 +29,12 @@
       margin-top: 30px;
       font-size: 24px;
       color: green;
+      position: relative;
+      z-index: 2;
+    }
+    #emoji-container {
+      position: relative;
+      z-index: 2;
     }
 
     /* Bounce (happy) */
@@ -35,13 +46,13 @@
       animation: bounce 0.4s;
     }
 
-    /* Pulse (neutral) */
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); opacity: 1; }
-      50% { transform: scale(1.1); opacity: 0.7; }
+    /* Sway (neutral) */
+    @keyframes sway {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(10deg); }
     }
-    .pulse {
-      animation: pulse 1s ease-in-out 2;
+    .sway {
+      animation: sway 2s ease-in-out infinite;
     }
 
     /* Shake (sad) */
@@ -53,6 +64,35 @@
     .shake {
       animation: shake 0.4s;
     }
+
+    /* Rain background container */
+    #rain {
+      pointer-events: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    /* Single raindrop */
+    .raindrop {
+      position: absolute;
+      bottom: 100%;
+      width: 2px;
+      height: 15px;
+      background: rgba(0, 0, 255, 0.3);
+      animation-name: fall;
+      animation-timing-function: linear;
+      animation-iteration-count: infinite;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(100vh);
+      }
+    }
   </style>
 </head>
 <body>
@@ -63,6 +103,7 @@
     <span class="emoji">😞</span>
   </div>
   <div id="message"></div>
+  <div id="rain"></div>
 
   <!-- Confetti library -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -79,13 +120,32 @@
       });
     }
 
+    function createRain() {
+      const rain = document.getElementById('rain');
+      rain.innerHTML = ''; // clear existing drops
+      const dropsCount = 50; // number of raindrops
+
+      for(let i = 0; i < dropsCount; i++) {
+        const drop = document.createElement('div');
+        drop.classList.add('raindrop');
+        drop.style.left = Math.random() * 100 + 'vw';
+        drop.style.animationDuration = (0.5 + Math.random() * 0.5) + 's';
+        drop.style.animationDelay = (Math.random() * 2) + 's';
+        rain.appendChild(drop);
+      }
+    }
+
+    function clearRain() {
+      document.getElementById('rain').innerHTML = '';
+    }
+
     document.querySelectorAll('.emoji').forEach(emojiEl => {
       emojiEl.addEventListener('click', function(event) {
         const selectedEmoji = event.target.textContent;
 
         sendVote(selectedEmoji);
 
-        event.target.classList.remove('bounce', 'pulse', 'shake');
+        event.target.classList.remove('bounce', 'sway', 'shake');
 
         if (selectedEmoji === '😀') {
           event.target.classList.add('bounce');
@@ -94,14 +154,17 @@
             spread: 70,
             origin: { y: 0.6 }
           });
+          clearRain();
         } else if (selectedEmoji === '😐') {
-          event.target.classList.add('pulse');
+          event.target.classList.add('sway');
+          clearRain();
         } else if (selectedEmoji === '😞') {
           event.target.classList.add('shake');
+          createRain();
         }
 
         setTimeout(() => {
-          event.target.classList.remove('bounce', 'pulse', 'shake');
+          event.target.classList.remove('bounce', 'sway', 'shake');
         }, 1000);
 
         setTimeout(() => {
@@ -110,6 +173,7 @@
         }, 500);
 
         setTimeout(() => {
+          clearRain();
           window.location.reload();
         }, 3000);
       });
