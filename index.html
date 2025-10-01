@@ -47,10 +47,9 @@
       body: 'emoji=' + encodeURIComponent(emoji)
     });
 
-    // Hide all emojis
-    document.querySelectorAll('.emoji').forEach(el => {
-      el.style.display = 'none';
-    });
+    // Get the emoji container and hide it completely
+    const emojiContainer = document.querySelector('div');
+    emojiContainer.style.display = 'none';
 
     // Show thank you message
     document.getElementById('message').textContent = "Thanks for your feedback!";
@@ -65,8 +64,10 @@
 
 
 
+
 </body>
 </html>
+
 
 
 
