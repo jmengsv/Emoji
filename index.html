@@ -116,9 +116,9 @@
 <body>
   <h1>How was your experience?</h1>
   <div id="emoji-container">
-    <span class="emoji">😀</span>
-    <span class="emoji">😐</span>
-    <span class="emoji">😞</span>
+    <span class="emoji" data-score="3">😀</span>
+    <span class="emoji" data-score="2">😐</span>
+    <span class="emoji" data-score="1">😞</span>
   </div>
   <div id="message"></div>
   <div id="rain"></div>
@@ -128,15 +128,15 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
   <script>
-    // ✅ Working vote submission function
-    function sendVote(emoji) {
-      fetch('https://script.google.com/macros/s/AKfycbyU5FlTo1ZezUaeLNHkUPWP5tPkcJ7K2nq8R3bZEafCV_1CT-b__eVualBJXY5HGfQU/exec', {
+    // Send emoji and score to your Google Apps Script
+    function sendVote(emoji, score) {
+      fetch('https://script.google.com/macros/s/AKfycbzm7dQrZgdSOaRrWFAVqvo3Av5lHeeOR-Oak49v5-_3ri-aWxr7K45gQ4s-XQO6QzkB/exec', {
         method: 'POST',
         mode: 'no-cors',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: 'emoji=' + encodeURIComponent(emoji)
+        body: 'emoji=' + encodeURIComponent(emoji) + '&score=' + encodeURIComponent(score)
       });
     }
 
@@ -207,7 +207,9 @@
     document.querySelectorAll('.emoji').forEach(emojiEl => {
       emojiEl.addEventListener('click', async function (event) {
         const selectedEmoji = event.target.textContent;
-        sendVote(selectedEmoji);
+        const score = event.target.getAttribute('data-score');
+
+        sendVote(selectedEmoji, score);
 
         event.target.classList.remove('bounce', 'shake', 'bomb-shake');
 
